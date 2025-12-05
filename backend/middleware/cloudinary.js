@@ -11,15 +11,17 @@ cloudinary.config({
 });
 
 async function uploadImage(imageName) {
-  let imagePath = path.join(`./public/uploads/${imageName}`);
+  const imagePath = path.join(`./public/uploads/${imageName}`);
+
   const result = await cloudinary.uploader.upload(imagePath);
+
+  // wait 2 seconds then delete file
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  fs.unlink(`./public/uploads/${imageName}`, (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
+
+  fs.unlink(imagePath, (err) => {
+    if (err) console.error("Error deleting local image:", err);
   });
+
   return result.url;
 }
 

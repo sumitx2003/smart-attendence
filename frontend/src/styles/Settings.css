@@ -1,0 +1,89 @@
+.settings-wrapper {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Card Section */
+.settings-card {
+  background: white;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 20px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #222831;
+}
+
+/* Inputs */
+.settings-input {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  margin-bottom: 18px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.settings-input:focus {
+  border-color: #76abae;
+}
+
+/* Theme Button */
+.btn-theme {
+  padding: 12px 20px;
+  background: #76abae;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-theme:hover {
+  background: #5d9296;
+}
+
+/* Update Password */
+.btn-update {
+  padding: 12px 20px;
+  background: #4c8f87;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-update:hover {
+  background: #3b726b;
+}
+
+/* Logout */
+.btn-logout {
+  padding: 12px 20px;
+  background: #e04e4e;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn-logout:hover {
+  background: #c63e3e;
+}

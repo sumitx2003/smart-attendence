@@ -1,142 +1,141 @@
-//create a new session component
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "../styles/StudentForm.css";
+import "../styles/StudentDashboard.css";
+import { useNavigate } from "react-router-dom";
+import StudentForm from "./StudentForm";
+import DashboardLayout from "./DashboardLayout";
 
-const StudentForm = ({ togglePopup }) => {
-  //eslint-disable-next-line
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [image, setImage] = useState({ contentType: "", data: "" });
-  const [photoData, setPhotoData] = useState(""); // To store the captured photo data
-  const videoRef = useRef(null);
+const StudentDashboard = () => {
+  const [token] = useState(localStorage.getItem("token") || "");
+  const [sessionList, setSessionList] = useState([]);
+  const [isSessionDisplay, setSessionDisplay] = useState(false);
 
-  const constraints = {
-    video: true,
-  };
-  const startCamera = () => {
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then((stream) => {
-        videoRef.current.srcObject = stream;
-      })
-      .catch((error) => {
-        console.error("Error accessing camera:", error);
-      });
-  };
-  const stopCamera = () => {
-    const stream = videoRef.current.srcObject;
-    const tracks = stream.getTracks();
+  const navigate = useNavigate();
 
-    tracks.forEach((track) => track.stop());
-    videoRef.current.srcObject = null;
-  };
-  const capturePhoto = async () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas
-      .getContext("2d")
-      .drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-    const photoDataUrl = canvas.toDataURL("image/png");
-
-    setImage(await fetch(photoDataUrl).then((res) => res.blob()));
-
-    setPhotoData(photoDataUrl);
-    stopCamera();
-  };
-  const ResetCamera = () => {
-    setPhotoData("");
-    startCamera();
-  };
-
-  const AttendSession = async (e) => {
-    e.preventDefault();
-    let regno = e.target.regno.value;
-    //get user IP address
-    axios.defaults.withCredentials = false;
-    const res = await axios.get("https://api64.ipify.org?format=json");
-    axios.defaults.withCredentials = true;
-    //
-    let IP = res.data.ip;
-    if (navigator.geolocation) {
-      console.log("Geolocation is supported!");
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          let locationString = `${latitude},${longitude}`;
-
-          if (regno.length > 0) {
-            const formData = {
-              token: token,
-              regno: regno,
-              session_id: localStorage.getItem("session_id"),
-              teacher_email: localStorage.getItem("teacher_email"),
-              IP: IP,
-              date: new Date().toISOString().split("T")[0],
-              Location: locationString,
-              student_email: localStorage.getItem("email"),
-              image: image,
-            };
-            try {
-              console.log("sending data to server");
-              const response = await axios.post(
-                "http://localhost:5050/sessions/attend_session",
-                formData,
-                {
-                  headers: {
-                    "Content-Type": "multipart/form-data",
-                  },
-                }
-              );
-              //replace the contents of the popup with the QR code
-              document.querySelector(
-                ".form-popup-inner"
-              ).innerHTML = `<h5>${response.data.message}</h5>`;
-            } catch (err) {
-              console.error(err);
-            }
-          } else {
-            alert("Please fill all the fields");
-          }
-        },
-        (error) => {
-          console.error("Error getting geolocation:", error);
+  // Fetch sessions from backend
+  const getStudentSessions = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/sessions/getStudentSessions",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-    } else {
-      alert("Geolocation is not supported by this browser.");
-      console.error("Geolocation is not supported by this browser.");
+
+      setSessionList(res.data.sessions || []);
+    } catch (err) {
+      console.error("Error fetching sessions:", err);
     }
   };
 
-  return (
-    <div className="form-popup">
-      <button onClick={togglePopup}>
-        <strong>X</strong>
-      </button>
-      <div className="form-popup-inner">
-        <h5>Enter Your Details</h5>
-        {!photoData && <video ref={videoRef} width={300} autoPlay={true} />}
-        {photoData && <img src={photoData} width={300} alt="Captured" />}
-        <div className="cam-btn">
-          <button onClick={startCamera}>Start Camera</button>
-          <button onClick={capturePhoto}>Capture</button>
-          <button onClick={ResetCamera}>Reset</button>
-        </div>
+  const toggleStudentForm = (action) => {
+    if (action === "open") {
+      setSessionDisplay(true);
+    } else {
+      localStorage.removeItem("session_id");
+      localStorage.removeItem("teacher_email");
+      setSessionDisplay(false);
+    }
+  };
 
-        <form onSubmit={AttendSession}>
-          <input
-            type="text"
-            name="regno"
-            placeholder="RegNo"
-            autoComplete="off"
-          />
-          <button type="submit">Done</button>
-        </form>
+  const getDistance = (distance, radius) => {
+    if (!distance || !radius) {
+      return { distance: "N/A", color: "black" };
+    }
+    return {
+      distance,
+      color: parseFloat(distance) <= parseFloat(radius) ? "green" : "red",
+    };
+  };
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    getStudentSessions();
+
+    // Handle QR scan
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get("session_id");
+    const teacher_email = params.get("email");
+
+    if (session_id && teacher_email) {
+      localStorage.setItem("session_id", session_id);
+      localStorage.setItem("teacher_email", teacher_email);
+      toggleStudentForm("open");
+    }
+  }, [token]); // ❌ no navigate dependency → avoids re-render loops
+
+  return (
+    <DashboardLayout title="Student Dashboard">
+      <div className="student-dashboard-content">
+
+        {/* Attendance form popup */}
+        {isSessionDisplay && (
+          <div className="popup-overlay">
+            <StudentForm togglePopup={toggleStudentForm} />
+          </div>
+        )}
+
+        {/* Main dashboard */}
+        {!isSessionDisplay && (
+          <>
+            <h2>Your Attendance Records</h2>
+
+            <div className="session-table-container">
+              {sessionList.length > 0 ? (
+                <table className="session-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Duration</th>
+                      <th>Distance</th>
+                      <th>Image</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessionList.map((session, index) => {
+                      const dist = getDistance(session.distance, session.radius);
+
+                      return (
+                        <tr key={index}>
+                          <td>{session.name}</td>
+                          <td>{session.date?.split("T")[0] || "N/A"}</td>
+                          <td>{session.time}</td>
+                          <td>{session.duration}</td>
+
+                          <td style={{ color: dist.color }}>{dist.distance}</td>
+
+                          <td>
+                            <img
+                              src={session.image}
+                              alt="session"
+                              className="session-image"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="empty-text">
+                  No attendance yet. Scan QR to mark attendance!
+                </p>
+              )}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
-export default StudentForm;
+export default StudentDashboard;

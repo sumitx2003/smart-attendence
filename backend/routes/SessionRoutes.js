@@ -4,24 +4,36 @@ import upload from "../middleware/Multer.js";
 import SessionController from "../controllers/SessionController.js";
 import JWT from "../middleware/JWT.js";
 
-//login
-router.post("/create", JWT.verifyToken, SessionController.CreateNewSession);
-//get sessions
+// Create session
+router.post(
+  "/create",
+  JWT.verifyToken,
+  SessionController.CreateNewSession
+);
+
+// Get all teacher sessions
 router.post(
   "/getSessions",
   JWT.verifyToken,
   SessionController.GetAllTeacherSessions
 );
-//get QR
-router.post("/getQR", JWT.verifyToken, SessionController.GetQR);
-//attend session
+
+// Get QR for a session
+router.post(
+  "/getQR",
+  JWT.verifyToken,
+  SessionController.GetQR
+);
+
+// Attend a session
 router.post(
   "/attend_session",
   JWT.verifyToken,
   upload.single("image"),
   SessionController.AttendSession
 );
-//get student sessions
+
+// Get sessions for student
 router.post(
   "/getStudentSessions",
   JWT.verifyToken,

@@ -1,18 +1,19 @@
 {
-  "name": "playlist-sharing-app",
+  "name": "smart-attendance-backend",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon apps.js"
+    "start": "nodemon app.js"
   },
   "keywords": [],
-  "author": "Dhruvil Patel & Rahul Agnihotri",
+  "author": "sumit jangid,sourav agarwal,gulab rana",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.6.8",
+    "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.2",
     "cloudinary": "^2.1.0",
     "cookie-parser": "^1.4.6",
@@ -26,6 +27,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "nodemon": "^3.1.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "qrcode": "^1.5.4"
   }
 }

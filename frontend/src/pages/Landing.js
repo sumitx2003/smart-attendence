@@ -11,9 +11,11 @@ const Landing = () => {
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      window.location.href = "/login";
+      const type = localStorage.getItem("type");
+      window.location.href =
+        type === "teacher" ? "/teacher-dashboard" : "/student-dashboard";
     }
-  });
+  }, []);
 
   function toggleDone() {
     setTutorial(false);

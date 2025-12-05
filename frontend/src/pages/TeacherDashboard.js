@@ -4,113 +4,136 @@ import "../styles/Dashboard.css";
 import { useNavigate } from "react-router-dom";
 import NewSession from "./NewSession";
 import SessionDetails from "./SessionDetails";
-
-axios.defaults.withCredentials = true;
+import DashboardLayout from "./DashboardLayout";
 
 const TeacherDashboard = () => {
-  //eslint-disable-next-line
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [sessionList, setSessionList] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSessionDisplay, setSessionDisplay] = useState(false);
-  const [currentSession, setCurrentSession] = useState("");
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  //update list of sessions
+  const [sessionList, setSessionList] = useState([]);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isSessionDetailsOpen, setIsSessionDetailsOpen] = useState(false);
+  const [currentSession, setCurrentSession] = useState(null);
+
   const updateList = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5050/sessions/getSessions",
-        {
-          token: token,
-        }
+        "http://localhost:5000/sessions/getSessions",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSessionList(response.data.sessions);
+
+      setSessionList(response.data.sessions || []);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching sessions:", err);
     }
   };
 
-  const toggleSessionDetails = (e) => {
-    //get the session details that has session_id = e
-    setCurrentSession(
-      sessionList.filter((session) => {
-        return session.session_id === e;
-      })
-    );
-    setSessionDisplay(!isSessionDisplay);
+  const togglePopup = () => setIsPopupOpen(prev => !prev);
+
+  const openSessionDetails = (sessionId) => {
+    const selected = sessionList.find(s => s.session_id === sessionId);
+    setCurrentSession(selected);
+    setIsSessionDetailsOpen(true);
   };
 
-  const togglePopup = () => {
-    setIsOpen(!isOpen);
+  const closeSessionDetails = () => {
+    setIsSessionDetailsOpen(false);
+    setCurrentSession(null);
   };
+
   useEffect(() => {
-    if (token === "" || token === undefined) {
-      navigate("/login");
-    } else {
-      updateList();
-      document.querySelector(".logout").style.display = "block";
-    }
+    if (!token) navigate("/login");
+    else updateList();
   }, [token]);
 
-  const FlashCard = ({ session }) => {
-    return (
-      <div
-        className="flashcard"
-        onClick={() => toggleSessionDetails(session.session_id)}
-      >
-        <div className="front">
-          <h4>{session.name}</h4>
-        </div>
-      </div>
-    );
-  };
+  // -------------------------
+  // 📌 REAL STATS
+  // -------------------------
+  const totalSessions = sessionList.length;
+
+  // count all attendance records
+  const totalStudentsAttended = sessionList.reduce(
+    (sum, session) => sum + (session.attendance?.length || 0),
+    0
+  );
+
+  // count expected students (from total_students field)
+  const totalExpected = sessionList.reduce(
+    (sum, session) => sum + Number(session.total_students || 0),
+    0
+  );
+
+  const avgAttendance =
+    totalExpected > 0
+      ? Math.round((totalStudentsAttended / totalExpected) * 100)
+      : 0;
 
   return (
-    <div className="dashboard-main">
-      <div className="row1">
-        <div className="heading">
-          <h2>Your Sessions</h2>
+    <DashboardLayout title="Teacher Dashboard">
+
+      {/* Stats */}
+      <div className="dashboard-widgets">
+        <div className="widget-card">
+          <h3>Total Sessions</h3>
+          <p>{totalSessions}</p>
         </div>
-        <div className="createbtncol">
-          <button onClick={togglePopup} className="createbtn">
-            Create Session
+
+        <div className="widget-card">
+          <h3>Students Attended</h3>
+          <p>{totalStudentsAttended}</p>
+        </div>
+
+        <div className="widget-card">
+          <h3>Average Attendance</h3>
+          <p>{avgAttendance}%</p>
+        </div>
+      </div>
+
+      {/* Session List */}
+      <div className="session-section">
+        <div className="session-header">
+          <h2>Your Sessions</h2>
+          <button className="createbtn" onClick={togglePopup}>
+            + Create Session
           </button>
         </div>
-      </div>
-      <div className="session-list">
-        {sessionList.length > 0 ? (
-          sessionList.map((session, index) => {
-            return (
+
+        <div className="session-grid">
+          {sessionList.length > 0 ? (
+            sessionList.map((session, index) => (
               <div
-                key={index + session.session_id}
-                className="flashcard"
-                onClick={() => {
-                  toggleSessionDetails(session.session_id);
-                }}
+                key={index}
+                className="session-card"
+                onClick={() => openSessionDetails(session.session_id)}
               >
-                <FlashCard session={session} />
+                <h3>{session.name}</h3>
+                <p>{session.date.split("T")[0]}</p>
               </div>
-            );
-          })
-        ) : (
-          <p>No sessions found</p>
-        )}
+            ))
+          ) : (
+            <p className="empty-text">No sessions found. Create one!</p>
+          )}
+        </div>
       </div>
-      {isSessionDisplay && (
+
+      {/* Session Details Popup */}
+      {isSessionDetailsOpen && currentSession && (
         <div className="popup-overlay">
           <SessionDetails
             currentSession={currentSession}
-            toggleSessionDetails={toggleSessionDetails}
+            closeSession={closeSessionDetails}
           />
         </div>
       )}
-      {isOpen && (
+
+      {/* Create Session Popup */}
+      {isPopupOpen && (
         <div className="popup-overlay">
-          <NewSession togglePopup={togglePopup} />
+          <NewSession togglePopup={togglePopup} updateList={updateList} />
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 };
 

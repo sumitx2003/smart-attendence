@@ -8,3 +8,7 @@ export { default as Nav } from "./Nav";
 export { default as NewSession } from "./NewSession";
 export { default as StudentDashboard } from "./StudentDashboard";
 export { default as ForgotPassword } from "./ForgotPassword";
+/* NEW PAGES YOU MUST ADD */
+export { default as Profile } from "./Profile";
+export { default as AttendanceReport } from "./AttendanceReport";
+export { default as Settings } from "./Settings";

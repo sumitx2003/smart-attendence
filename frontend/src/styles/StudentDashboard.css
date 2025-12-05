@@ -1,0 +1,91 @@
+/* ===============================
+   🌈 STUDENT DASHBOARD - MODERN UI
+================================ */
+.student-dashboard-content {
+  background: #f8fafc;
+  padding: 40px;
+  border-radius: 20px;
+}
+
+/* Header */
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.session-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #222831;
+  letter-spacing: -0.5px;
+}
+
+/* Table Wrapper */
+.session-table-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  overflow-x: auto;
+}
+
+/* Table */
+.session-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  min-width: 700px;
+}
+
+.session-table thead {
+  background: linear-gradient(135deg, #222831, #31363f);
+  color: #fff;
+}
+
+.session-table th,
+.session-table td {
+  padding: 14px 10px;
+  font-size: 15px;
+}
+
+.session-table tbody tr {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #eee;
+}
+
+.session-table tbody tr:hover {
+  background-color: #f3f7f7;
+  transform: scale(1.01);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Images */
+.session-image {
+  width: 100px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Empty State */
+.empty-text {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .student-dashboard-content {
+    padding: 20px;
+  }
+
+  .session-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
